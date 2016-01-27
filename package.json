@@ -1,0 +1,16 @@
+{
+  "name": "sunmap",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node_modules/react-native/packager/packager.sh"
+  },
+  "dependencies": {
+    "lodash": "^4.0.1",
+    "react-native": "^0.18.1",
+    "react-native-redux-router": "^1.0.6",
+    "react-native-router": "^0.2.1",
+    "react-redux": "3.1.0",
+    "redux": "^3.0.6"
+  }
+}
