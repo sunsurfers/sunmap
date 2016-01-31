@@ -6,7 +6,9 @@
     "start": "node_modules/react-native/packager/packager.sh"
   },
   "dependencies": {
+    "geolib": "^2.0.18",
     "lodash": "^4.0.1",
+    "moment": "^2.11.1",
     "react-native": "^0.18.1",
     "react-native-redux-router": "^1.0.6",
     "react-native-router": "^0.2.1",

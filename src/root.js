@@ -1,6 +1,6 @@
 const React = require('react-native');
 const {
-    Text, View, PropTypes, StatusBarIOS, Animated
+    Text, View, PropTypes, StatusBarIOS, Animated, Dimensions
     } = React;
 
 import _ from 'lodash';
@@ -10,6 +10,7 @@ const {reduce, assign} = _;
 const SCREENS = require('./view/screen');
 const STYLE = require('./view/style');
 
+const {height} = Dimensions.get('window');
 
 StatusBarIOS.setStyle(1);
 
@@ -22,20 +23,21 @@ class Root extends React.Component {
     }
   }
 
-  componentDidMount() {
-    setTimeout(() => {
-      this.goTo('list')
-    }, 500);
-  }
+  //componentDidMount() {
+  //  setTimeout(() => {
+  //    this.goTo('list')
+  //  }, 500);
+  //}
 
-  goTo() {
+  goTo(screen, params) {
     Animated.timing(this.state.screenAnim, {
       toValue: 1,
       duration: 222,
     }).start(() => {
       this.props.dispatch({
         type: 'goTo',
-        screen: 'list',
+        screen: screen,
+        params: params
       });
 
       Animated.timing(this.state.screenAnim, {
@@ -45,11 +47,8 @@ class Root extends React.Component {
     });
   }
 
-  render() {
-    const {router} = this.props.store;
-    const Screen = SCREENS[router.screen];
-
-    const screenAnimatedStyles = {
+  getScreenAnimatedStyles () {
+    return {
       opacity: this.state.screenAnim.interpolate({
         inputRange: [0, 1],
         outputRange: [1, 0]
@@ -61,11 +60,17 @@ class Root extends React.Component {
         })}
       ]
     }
+  }
+
+  render() {
+    const {router} = this.props.store;
+    const Screen = SCREENS[router.screen];
 
     return (<View style={{backgroundColor: STYLE.color.lightgray, flex: 1}}>
       <View style={{height: 21, backgroundColor: STYLE.color.orange}} />
-      <Animated.View style={screenAnimatedStyles}>
-        <Screen />
+
+      <Animated.View style={this.getScreenAnimatedStyles()}>
+        <Screen style={{height: height - 21, backgroundColor: 'white'}} />
       </Animated.View>
     </View>)
   }

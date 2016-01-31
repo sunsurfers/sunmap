@@ -7,8 +7,6 @@ import React, {
 
 import Root from './src/root'
 
-
-
 import { createStore, combineReducers } from 'redux';
 import { Provider } from 'react-redux/native';
 
@@ -35,5 +33,6 @@ class App extends React.Component {
     return (<Root dispatch={store.dispatch} store={this.state.store} />);
   }
 }
+
 
 AppRegistry.registerComponent('sunmap', () => App);
