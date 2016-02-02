@@ -134,7 +134,7 @@ const getRichList = (function(){
 
     return {
       howlong: moment((new Date(loc.created_at))).fromNow(true),
-      howfar: distanceKm.toFixed(1) + ' KM'
+      howfar: distanceKm > 0.1 ? distanceKm.toFixed(1) + ' KM' : (distanceKm * 1000) + 'M'
       //howfar: (distance / 1000) > 1 ? (distance / 1000).toFixed(0) + 'km' : distance + 'm'
     }
   }
@@ -159,8 +159,8 @@ ListScreen.defaultProps = {
   locations: {
     'marat': {
       'created_at': "Thu Jan 08 2016 00:00:00 GMT+0200 (EET)",
-      'lat': 6.285153,
-      'lng': 99.456238,
+      'lat': 5.52498,
+      'lng': 101.23429,
     },
     'murad': {
       'created_at': "Thu Jan 22 2016 00:00:00 GMT+0200 (EET)",
