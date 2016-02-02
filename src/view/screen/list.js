@@ -1,6 +1,4 @@
 const React = require('react-native');
-const geolib = require('geolib');
-const moment = require('moment');
 
 const {
     Text, View, PropTypes, ListView, TouchableHighlight, Image
@@ -12,6 +10,62 @@ const STYLE = require('../style');
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
+
+const $$ = require('../style').create({
+  'avatar-small': {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'black',
+  },
+  'list': {
+    flex: 1
+  },
+  'list-item': {
+    flexDirection: 'row',
+    padding: 3,
+    paddingLeft: ((70 - 50 - 3 - 3) / 2) * 2,
+    height: 70,
+  },
+  'list-item-even': {
+    backgroundColor: 'rgba(74, 144, 226, .05)',
+  },
+  'list-item-odd': {
+    backgroundColor: 'rgba(255, 255, 255, .05)',
+  },
+  'list-item-avatar': {
+    flex: 2, marginTop: (70 - 50 - 3 - 3) / 2
+  },
+  'list-item-textzone': {
+    flex: 9, flexDirection: 'row',
+    marginTop: 13,
+  },
+  'list-item-left': {
+    flex: 7
+  },
+  'list-item-right': {
+    flex: 4,
+    alignItems: 'flex-start'
+
+  },
+  'list-item-name': {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginBottom: 2
+  },
+  'list-item-place': {
+
+  },
+  'list-item-howfar': {
+    marginBottom: 3
+  },
+  'list-item-howlong': {
+    marginLeft: 5,
+    fontSize: 11
+  },
+});
+
 class ListScreen extends React.Component {
   render() {
     console.log('render of ListScreen', this.props, this.state);
@@ -22,7 +76,7 @@ class ListScreen extends React.Component {
     return (
         <View style={[{}, this.props.style]}>
           <ListView
-              style={[{flex: 1}, this.props.style]}
+              style={$$('list')}
               dataSource={dataSource}
               renderRow={this.renderRow.bind(this)}
           />
@@ -34,24 +88,26 @@ class ListScreen extends React.Component {
   }
 
   renderRow(s, xxx, index) {
-    var i = parseInt(index);
+    var i = parseInt(index),
+        bgStyle = i % 2 === 0 ? $$('list-item-odd') : $$('list-item-even');
 
-    return (<TouchableHighlight onPress={this.onPress.bind(this, s.id)} underlayColor={STYLE.color.orange}>
-      <View style={[styles.listItem, i % 2 === 0 ? styles.listItemOdd : styles.listItemEven]} key={s.id}>
-
-        <View style={{flex: 1, marginTop: (70 - 50 - 3 - 3) / 2}}>
-          <Image source={{uri: 'http://127.0.0.1:8888/public/avatars/' + s.id + '.jpg'}} style={styles.avatar}/>
+    return (<TouchableHighlight onPress={this.onPress.bind(this, s.id)} underlayColor={STYLE.color.orange} key={s.id}>
+      <View style={[$$('list-item'), bgStyle]}>
+        <View style={$$('list-item-avatar')}>
+          <Image source={{uri: 'http://127.0.0.1:8888/public/avatars/' + s.id + '.jpg'}}
+              style={$$('avatar-small')}/>
         </View>
 
-        <View style={{flex: 5, flexDirection: 'row'}}>
-          <Text key={s.name} style={{lineHeight: 28}}>
-            <Text style={{marginRight: 5, marginTop: 14, color: 'black'}}>({s.sex[0]}) </Text>
-            <Text style={{fontWeight: 'bold'}}>{s.name} - {s.place} {'\n'}</Text>
-            <Text style={{}}>long: {s.location.howlong} ::: </Text>
-            <Text style={{}}>far: {s.location.howfar}</Text>
-          </Text>
+        <View style={$$('list-item-textzone')}>
+          <View style={$$('list-item-left')}>
+            <Text style={$$('list-item-name')}>{s.name}</Text>
+            <Text style={$$('list-item-place text-gray')}>{s.place}</Text>
+          </View>
+          <View style={$$('list-item-right')}>
+            <View style={$$('list-item-howfar label')}><Text style={$$('label-text')}>{s.location.howfar}</Text></View>
+            <Text style={$$('list-item-howlong text-gray')}>{s.location.howlong}</Text>
+          </View>
         </View>
-
       </View>
     </TouchableHighlight>)
   }
@@ -60,56 +116,39 @@ class ListScreen extends React.Component {
 
 
 
-function getLocationData(loc, myLocation) {
-  if (!loc) return {};
 
-  const distance = geolib.getDistance(
-      {latitude: loc.lat, longitude: loc.lng},
-      {latitude: myLocation.lat, longitude: myLocation.lng}
-  );
 
-  return {
-    howlong: moment((new Date(loc.created_at))).fromNow(true),
-    howfar: (distance / 1000) > 1 ? distance + 'km' : distance + 'm'
+const getRichList = (function(){
+  const geolib = require('geolib');
+  const moment = require('moment');
+  moment.locale('ru', require('moment/locale/ru'))
+
+
+  function getLocationData(loc, myLocation) {
+    if (!loc) return {};
+
+    const distanceKm = geolib.getDistance(
+            {latitude: loc.lat, longitude: loc.lng},
+            {latitude: myLocation.lat, longitude: myLocation.lng}
+        ) / 1000;
+
+    return {
+      howlong: moment((new Date(loc.created_at))).fromNow(true),
+      howfar: distanceKm.toFixed(1) + ' KM'
+      //howfar: (distance / 1000) > 1 ? (distance / 1000).toFixed(0) + 'km' : distance + 'm'
+    }
   }
-}
-function getRichList({locations, list, myLocation}) {
-  return list.map((s) => {
-    return Object.assign({}, s,
-        {location: getLocationData(locations[s.id], myLocation)}
-    );
-  });
-}
-
-
-
-
-
-
-
-
-
-var styles = {
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: 'black',
-  },
-  listItem: {
-    flexDirection: 'row',
-    padding: 3,
-    paddingLeft: ((70 - 50 - 3 - 3) / 2) * 2,
-    height: 70,
-  },
-  listItemEven: {
-    backgroundColor: 'rgba(74, 144, 226, .05)',
-  },
-  listItemOdd: {
-    backgroundColor: 'rgba(255, 255, 255, .05)',
+  return function getRichList({locations, list, myLocation}) {
+    return list.map((s) => {
+      return Object.assign({}, s,
+          {location: getLocationData(locations[s.id], myLocation)}
+      );
+    });
   }
-};
+})();
+
+
+
 
 ListScreen.defaultProps = {
   myLocation: {
@@ -130,7 +169,7 @@ ListScreen.defaultProps = {
     },
     'sayana': {
       'created_at': "Thu Jan 16 2016 00:00:00 GMT+0200 (EET)",
-      'lat': 5.52456,
+      'lat': 5.529999,
       'lng': 101.23422,
     },
     'sasha': {
