@@ -1,18 +1,15 @@
-function router(state, action) {
-  console.log('[REDUCER ROUTER]: ', {state, action});
+const initialRouter =  {
+  //screen: 'auth',
+  screen: 'list',
+};
 
-  state = state || {
-    //screen: 'auth',
-    screen: 'list',
-  };
-
+function router(state = initialRouter, action) {
   if(action.type === 'goTo') {
     state = {
       screen: action.screen,
       params: action.params,
     }
   }
-
   return state;
 };
 

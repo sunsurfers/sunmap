@@ -18,7 +18,8 @@ class ProfileScreen extends React.Component {
 
     return (<View style={[this.props.style, {}]}>
       <View style={$$('avatar')}>
-
+        <Text> hey!
+        </Text>
       </View>
     </View>)
   }

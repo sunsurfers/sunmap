@@ -1,14 +1,85 @@
-const React = require('react-native');
-
-const {
-    Text, View, PropTypes, ListView, TouchableHighlight, Image
-    } = React;
+import React, {Text, View, PropTypes, ListView, TouchableHighlight, Image} from 'react-native';
 
 const _ = require('lodash');
 const {reduce, assign, map} = _;
 const STYLE = require('../style');
+const API = require('../../core/api');
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+
+
+class ListScreen extends React.Component {
+  render() {
+    console.log('render of ListScreen', this.props, this.state);
+
+    const {locations, users, me} = this.props;
+
+    return (
+        <View style={[{}, this.props.style]}>
+          <ListView
+              style={$$('list')}
+              dataSource={ds.cloneWithRows(getRichList({locations, users, location: me.location}))}
+              renderRow={this.renderRow.bind(this)}
+          />
+        </View>)
+  }
+
+  renderRow(s, xxx, index) {
+    var i = parseInt(index),
+        bgStyle = i % 2 === 0 ? $$('list-item-odd') : $$('list-item-even');
+
+    return (<TouchableHighlight onPress={() => this.props.goTo('profile', {id: s.id})} underlayColor={STYLE.color.orange} key={s.id}>
+      <View style={[$$('list-item'), bgStyle]}>
+        <View style={$$('list-item-avatar')}>
+          <Image source={{uri: API.assets + '/avatars/' + s.id + '.jpg'}}
+              style={$$('avatar-small')}/>
+        </View>
+
+        <View style={$$('list-item-textzone')}>
+          <View style={$$('list-item-left')}>
+            <Text style={$$('list-item-name')}>{s.name}</Text>
+            <Text style={$$('list-item-place text-gray')}>{s.place}</Text>
+          </View>
+          <View style={$$('list-item-right')}>
+            <View style={$$('list-item-howfar label')}><Text style={$$('label-text')}>{s.location.howfar}</Text></View>
+            <Text style={$$('list-item-howlong text-gray')}>{s.location.howlong}</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableHighlight>)
+  }
+}
+
+
+
+const getRichList = (function(){
+  const geolib = require('geolib');
+  const moment = require('moment');
+  moment.updateLocale('ru', require('moment/locale/ru'))
+
+
+  function getLocationData(loc, myLocation) {
+    if (!loc) return {};
+
+    const distanceKm = geolib.getDistance(
+            {latitude: loc.lat, longitude: loc.lng},
+            {latitude: myLocation.lat, longitude: myLocation.lng}
+        ) / 1000;
+
+    return {
+      howlong: moment((new Date(loc.created_at))).fromNow(true),
+      howfar: distanceKm > 0.1 ? distanceKm.toFixed(1) + ' KM' : (distanceKm * 1000) + 'M'
+      //howfar: (distance / 1000) > 1 ? (distance / 1000).toFixed(0) + 'km' : distance + 'm'
+    }
+  }
+  return function getRichList({locations, users, location}) {
+    return users.map((s) => {
+      return Object.assign({}, s,
+          {location: getLocationData(locations[s.id], location)}
+      );
+    });
+  }
+})();
 
 
 const $$ = require('../style').create({
@@ -66,153 +137,8 @@ const $$ = require('../style').create({
   },
 });
 
-class ListScreen extends React.Component {
-  render() {
-    console.log('render of ListScreen', this.props, this.state);
 
-    const {locations, list, myLocation} = this.props;
-
-    const dataSource = ds.cloneWithRows(getRichList({locations, list, myLocation}))
-    return (
-        <View style={[{}, this.props.style]}>
-          <ListView
-              style={$$('list')}
-              dataSource={dataSource}
-              renderRow={this.renderRow.bind(this)}
-          />
-        </View>)
-  }
-
-  onPress(id) {
-    console.log('onpress', id);
-  }
-
-  renderRow(s, xxx, index) {
-    var i = parseInt(index),
-        bgStyle = i % 2 === 0 ? $$('list-item-odd') : $$('list-item-even');
-
-    return (<TouchableHighlight onPress={this.onPress.bind(this, s.id)} underlayColor={STYLE.color.orange} key={s.id}>
-      <View style={[$$('list-item'), bgStyle]}>
-        <View style={$$('list-item-avatar')}>
-          <Image source={{uri: 'http://127.0.0.1:8888/public/avatars/' + s.id + '.jpg'}}
-              style={$$('avatar-small')}/>
-        </View>
-
-        <View style={$$('list-item-textzone')}>
-          <View style={$$('list-item-left')}>
-            <Text style={$$('list-item-name')}>{s.name}</Text>
-            <Text style={$$('list-item-place text-gray')}>{s.place}</Text>
-          </View>
-          <View style={$$('list-item-right')}>
-            <View style={$$('list-item-howfar label')}><Text style={$$('label-text')}>{s.location.howfar}</Text></View>
-            <Text style={$$('list-item-howlong text-gray')}>{s.location.howlong}</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableHighlight>)
-  }
-}
-
-
-
-
-
-
-const getRichList = (function(){
-  const geolib = require('geolib');
-  const moment = require('moment');
-  moment.locale('ru', require('moment/locale/ru'))
-
-
-  function getLocationData(loc, myLocation) {
-    if (!loc) return {};
-
-    const distanceKm = geolib.getDistance(
-            {latitude: loc.lat, longitude: loc.lng},
-            {latitude: myLocation.lat, longitude: myLocation.lng}
-        ) / 1000;
-
-    return {
-      howlong: moment((new Date(loc.created_at))).fromNow(true),
-      howfar: distanceKm > 0.1 ? distanceKm.toFixed(1) + ' KM' : (distanceKm * 1000) + 'M'
-      //howfar: (distance / 1000) > 1 ? (distance / 1000).toFixed(0) + 'km' : distance + 'm'
-    }
-  }
-  return function getRichList({locations, list, myLocation}) {
-    return list.map((s) => {
-      return Object.assign({}, s,
-          {location: getLocationData(locations[s.id], myLocation)}
-      );
-    });
-  }
-})();
-
-
-
-
-ListScreen.defaultProps = {
-  myLocation: {
-    'lat': 5.52455,
-    'lng': 101.23423,
-  },
-
-  locations: {
-    'marat': {
-      'created_at': "Thu Jan 08 2016 00:00:00 GMT+0200 (EET)",
-      'lat': 5.52498,
-      'lng': 101.23429,
-    },
-    'murad': {
-      'created_at': "Thu Jan 22 2016 00:00:00 GMT+0200 (EET)",
-      'lat': 3.285153,
-      'lng': 55.456238,
-    },
-    'sayana': {
-      'created_at': "Thu Jan 16 2016 00:00:00 GMT+0200 (EET)",
-      'lat': 5.529999,
-      'lng': 101.23422,
-    },
-    'sasha': {
-      'created_at': "Thu Jan 28 2015 00:00:00 GMT+0200 (EET)",
-      'lat': 20.285153,
-      'lng': 80.456238,
-    },
-  },
-  list: [
-    {
-      id: 'marat',
-      name: 'Марат Хасанов',
-      age: 27,
-      position: [51.5033630, -0.1276250],
-      place: 'Пенанг, Малайзия',
-      sex: 'male',
-    },
-    {
-      id: 'sasha',
-      name: 'Александр Шистеров',
-      age: 29,
-      position: [51.5033630, -0.1276250],
-      place: 'Пхукет, Таиланд',
-      sex: 'male',
-    },
-    {
-      id: 'sayana',
-      name: 'Саяна',
-      age: 29,
-      position: [51.5033630, -0.1276250],
-      place: 'Самуи, Таиланд',
-      sex: 'female',
-    },
-    {
-      id: 'murad',
-      name: 'Мурад Рогожников',
-      age: 25,
-      position: [51.5033630, -0.1276250],
-      place: 'Пхукет, Таиланд',
-      sex: 'male',
-    },
-  ]
-};
+ListScreen.defaultProps = {};
 ListScreen.propTypes = {};
 
 module.exports = ListScreen;

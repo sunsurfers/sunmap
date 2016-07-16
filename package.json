@@ -9,10 +9,15 @@
     "geolib": "^2.0.18",
     "lodash": "^4.0.1",
     "moment": "^2.11.1",
-    "react-native": "^0.18.1",
+    "react-native": "",
+    "react-native-form": "^2.0.5",
+    "react-native-gifted-messenger": "0.0.24",
+    "react-native-picker": "^2.0.4",
+    "react-native-popup": "^0.5.2",
     "react-native-redux-router": "^1.0.6",
     "react-native-router": "^0.2.1",
-    "react-redux": "3.1.0",
-    "redux": "^3.0.6"
+    "react-redux": "^4.4.1",
+    "redux": "^3.0.6",
+    "reselect": "^2.2.1"
   }
 }
